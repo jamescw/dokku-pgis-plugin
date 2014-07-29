@@ -1,6 +1,6 @@
 #!/bin/bash
 
 # Build docker image
-git clone https://github.com/t0pep0/dokku-pgis-dockerfiles.git /tmp/dokku-pgis-dockerfiles
+git clone -b development https://github.com/t0pep0/dokku-pgis-dockerfiles.git /tmp/dokku-pgis-dockerfiles
 docker build -q=true -t kloadut/postgresql /tmp/dokku-pgis-dockerfiles
 rm -rf /tmp/dokku-pgis-dockerfiles
