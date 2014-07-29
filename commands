@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e;
 
+DOKKU_ROOT=/home/dokku
+
 # Check if name is specified
 if [[ $1 == postgis:* ]]; then
     if [ -z $2 ] && [ $1 != postgis:list ]; then
