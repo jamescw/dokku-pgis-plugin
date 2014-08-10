@@ -23,6 +23,21 @@ if [[ ! -d $DOKKU_ROOT/.postgis ]]; then
     chown -R dokku: $DOKKU_ROOT/.postgis
 fi
 
+function check_postgis_container() {
+    if [[ ! -f "$DOKKU_ROOT/.postgis/pwd_$APP" ]]; then
+        echo "Unknown (or too old) postgis container"
+        exit 1
+    fi
+}
+
+function check_postgis_tool() {
+    local tool_name="$1"
+    if [[ $(whereis $tool_name | awk '{ print NF }') -eq 1 ]]; then
+        echo "'${tool_name}' not found. Is the package 'postgis-client' installed?" 1>&2
+        exit 1
+    fi
+}
+
 case "$1" in
 
   postgis:create)
@@ -47,7 +62,7 @@ case "$1" in
         chmod 700 "$DOKKU_ROOT/.postgis/pwd_$APP"
     fi
     # Fork DB image
-    ID=$(docker run -d kloadut/postgresql exit 0)
+    ID=$(docker run -d kloadut/postgresql echo '')
     docker wait $ID > /dev/null
     IMAGE=$(docker commit $ID)
     docker tag $IMAGE $DB_IMAGE
@@ -104,6 +119,19 @@ case "$1" in
     fi
     echo
     echo "-----> postgis container deleted: $DB_IMAGE"
+    ;;
+
+  postgis:dump)
+    check_postgis_container
+    check_postgis_tool pg_dump
+    export PGPASSWORD=$(cat "$DOKKU_ROOT/.postgis/pwd_$APP")
+    PORT=$(cat "$DOKKU_ROOT/.postgis/port_$APP")
+
+    pg_dump -h 172.17.42.1 -p $PORT -U root -c -O db
+
+    # echo to stderr, as stdout will probably be redirected to a file
+    echo 1>&2
+    echo "-----> $APP database dumped" 1>&2
     ;;
 
   postgis:info)
@@ -163,14 +191,28 @@ case "$1" in
     done
     ;;
 
+  postgis:restore)
+    check_postgis_container
+    check_postgis_tool psql
+    export PGPASSWORD=$(cat "$DOKKU_ROOT/.postgis/pwd_$APP")
+    PORT=$(cat "$DOKKU_ROOT/.postgis/port_$APP")
+
+    psql -h 172.17.42.1 -p $PORT -U root db
+
+    echo
+    echo "-----> $APP database restored"
+    ;;
+
   help)
     cat && cat<<EOF
-    postgis:create <app>     Create a postgis container
-    postgis:delete <app>     Delete specified postgis container
-    postgis:info <app>       Display database informations
-    postgis:link <app> <db>  Link an app to a postgis database
-    postgis:list             Display list of postgis containers
-    postgis:logs <app>       Display last logs from postgis container
+    postgis:create <db>                         Create a postgis container
+    postgis:delete <db>                         Delete specified postgis container
+    postgis:dump <db> > dump_file.sql           Dump database data
+    postgis:info <db>                           Display database informations
+    postgis:link <app> <db>                     Link an app to a postgis database
+    postgis:list                                Display list of postgis containers
+    postgis:logs <db>                           Display last logs from postgis container
+    postgis:restore <db> < dump_file.sql        Restore database data from a previous dump
 EOF
     ;;
 
