@@ -14,7 +14,7 @@ Installation
 ------------
 ```
 cd /var/lib/dokku/plugins
-git clone https://github.com/fermuch/dokku-pg-plugin.git postgis
+git clone https://github.com/jamescw/dokku-pg-plugin.git postgis
 dokku plugins-install
 ```
 
@@ -23,14 +23,14 @@ Commands
 --------
 ```
 $ dokku help
-    postgresql:create <db>                         Create a PostgreSQL container
-    postgresql:delete <db>                         Delete specified PostgreSQL container
-    postgresql:dump <db> > dump_file.sql           Dump database data
-    postgresql:info <db>                           Display database informations
-    postgresql:link <app> <db>                      Link an app to a PostgreSQL database
-    postgresql:list                                 Display list of PostgreSQL containers
-    postgresql:logs <db>                           Display last logs from PostgreSQL container
-    postgresql:restore <db> < dump_file.sql        Restore database data from a previous dump
+    postgis:create <db>                         Create a postgis container
+    postgis:delete <db>                         Delete specified postgis container
+    postgis:dump <db> > dump_file.sql           Dump database data
+    postgis:info <db>                           Display database informations
+    postgis:link <app> <db>                     Link an app to a postgis database
+    postgis:list                                Display list of postgis containers
+    postgis:logs <db>                           Display last logs from postgis container
+    postgis:restore <db> < dump_file.sql        Restore database data from a previous dump
 ```
 
 Simple usage
