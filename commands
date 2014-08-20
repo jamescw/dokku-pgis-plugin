@@ -38,10 +38,23 @@ function check_postgis_tool() {
     fi
 }
 
+function connect_to_db() {
+    export PGPASSWORD=$(cat "$DOKKU_ROOT/.postgis/pwd_$APP")
+    PORT=$(cat "$DOKKU_ROOT/.postgis/port_$APP")
+
+    psql -h 172.17.42.1 -p $PORT -U root db
+}
+
 case "$1" in
 
+  postgis:console)
+    check_postgis_container
+    check_postgis_tool psql
+    connect_to_db
+    ;;
+
   postgis:create)
-    DB_IMAGE=postgis/$APP
+    DB_IMAGE=postgresql/$APP
     # Check if DB container is installed
     IMAGE=$(docker images | grep "kloadut/postgresql" |  awk '{print $3}')
     if [[ -z $IMAGE ]]; then
@@ -135,11 +148,7 @@ case "$1" in
     ;;
 
   postgis:info)
-    DB_IMAGE=postgis/$APP
-    if [[ ! -f "$DOKKU_ROOT/.postgis/pwd_$APP" ]]; then
-        echo "Unknown (or too old) postgis container"
-        exit 1
-    fi
+    check_postgresql_container
     DB_PASSWORD=$(cat "$DOKKU_ROOT/.postgis/pwd_$APP")
     PORT=$(cat "$DOKKU_ROOT/.postgis/port_$APP")
 
@@ -162,12 +171,12 @@ case "$1" in
             exit 1
         fi
         DB_IMAGE="postgis/$3"
-    	if [[ ! -f "$DOKKU_ROOT/.postgis/pwd_$APP" ]]; then
-            echo "Database is not initialized correctly"
-            exit 0
+        if [[ ! -f "$DOKKU_ROOT/.postgis/pwd_$3" ]]; then
+            echo "Database is not initialized correctly. Did you run 'dokku plugins-install'?"
+            exit 1
         fi
-        DB_PASSWORD=$(cat "$DOKKU_ROOT/.postgis/pwd_$APP")
-        PORT=$(cat "$DOKKU_ROOT/.postgis/port_$APP")
+        DB_PASSWORD=$(cat "$DOKKU_ROOT/.postgis/pwd_$3")
+        PORT=$(cat "$DOKKU_ROOT/.postgis/port_$3")
         # Link database using dokku command
         dokku config:set $APP "DATABASE_URL=postgis://root:$DB_PASSWORD@172.17.42.1:$PORT/db"
         docker run $DB_IMAGE /usr/bin/add_postgis.sh $DB_PASSWORD $PORT
@@ -184,20 +193,22 @@ case "$1" in
     ;;
 
   postgis:list)
-    CONTAINERS=$(ls $DOKKU_ROOT/.postgis/volume* | sed -e 's/_/ /' | awk '{print $2}')
-    echo "postgis containers:"
-    for CONTAINER in $CONTAINERS; do
-        echo "  - $CONTAINER"
-    done
+    CONTAINERS=$(ls $DOKKU_ROOT/.postgis/volume* 2> /dev/null | sed -e 's/_/ /' | awk '{print $2}')
+    if [[ -z $CONTAINERS ]]; then
+        echo "There are no Postgis containers created."
+    else
+        echo "Postgis containers:"
+        for CONTAINER in $CONTAINERS; do
+            echo "  - $CONTAINER"
+        done
+    fi
     ;;
 
+  
   postgis:restore)
     check_postgis_container
     check_postgis_tool psql
-    export PGPASSWORD=$(cat "$DOKKU_ROOT/.postgis/pwd_$APP")
-    PORT=$(cat "$DOKKU_ROOT/.postgis/port_$APP")
-
-    psql -h 172.17.42.1 -p $PORT -U root db
+    connect_to_db
 
     echo
     echo "-----> $APP database restored"
@@ -205,6 +216,7 @@ case "$1" in
 
   help)
     cat && cat<<EOF
+    postgis:console <db>
     postgis:create <db>                         Create a postgis container
     postgis:delete <db>                         Delete specified postgis container
     postgis:dump <db> > dump_file.sql           Dump database data

@@ -71,6 +71,11 @@ Inititalize the database with SQL statements:
 cat init.sql | dokku postgis:create foo
 ```
 
+Open a PostgreSQL console for specified database:
+```
+dokku postgis:console foo
+```
+
 Deleting databases:
 ```
 dokku postgis:delete foo
@@ -86,7 +91,7 @@ postgis logs (per database):
 dokku postgis:logs foo
 ```
 
-Database informations:
+Database information:
 ```
 dokku postgis:info foo
 ```
