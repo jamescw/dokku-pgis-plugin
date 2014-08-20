@@ -54,7 +54,7 @@ case "$1" in
     ;;
 
   postgis:create)
-    DB_IMAGE=postgresql/$APP
+    DB_IMAGE=postgis/$APP
     # Check if DB container is installed
     IMAGE=$(docker images | grep "kloadut/postgresql" |  awk '{print $3}')
     if [[ -z $IMAGE ]]; then
@@ -148,7 +148,7 @@ case "$1" in
     ;;
 
   postgis:info)
-    check_postgresql_container
+    check_postgis_container
     DB_PASSWORD=$(cat "$DOKKU_ROOT/.postgis/pwd_$APP")
     PORT=$(cat "$DOKKU_ROOT/.postgis/port_$APP")
 
