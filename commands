@@ -63,7 +63,7 @@ case "$1" in
     fi
     # Check if an existing DB volume exists
     if [[ -f "$DOKKU_ROOT/.postgis/volume_$APP" ]]; then
-        VOLUME="`cat $DOKKU_ROOT/.postgis/volume_$APP`:/opt/postgis"
+        VOLUME="`cat $DOKKU_ROOT/.postgis/volume_$APP`:/opt/postgresql"
         echo
         echo "-----> Reusing postgis/$APP database"
     else
