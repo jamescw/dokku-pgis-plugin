@@ -26,7 +26,7 @@ if [[ -n $PG_APP_IMAGE_ID ]]; then
     else
         echo "stopped."
 
-        PG_VOLUME="`cat $DOKKU_ROOT/.postgis/volume_$APP`:/opt/postgis"
+        PG_VOLUME="`cat $DOKKU_ROOT/.postgis/volume_$APP`:/opt/postgresql"
         PG_PORT="`cat $DOKKU_ROOT/.postgis/port_$APP`"
 
         echo -n "       Launching $PG_APP_IMAGE... "
